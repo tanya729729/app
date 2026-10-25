@@ -32,14 +32,28 @@ study_durations = [25, 35]
 study_minutes = calculate_study_minutes(study_durations)
 print(study_minutes)
 
+
+def show_tasks(tasks):
+    if len(tasks) == 0:
+        print("Список задач пуст.")
+    else:
+        print("Полный показ задач появится позже.")
+
 def show_menu():
-    print("Planner: exit")
+    print("Команды: add, list, find, done, search, stats, exit")
 
 def run():
-    show_menu()
-    command = input("Команда: ")
-    if command == "exit":
-        return
-    print("На этом шаге проверяется только exit.")
+    tasks = []
+    while True:
+        show_menu()
+        command = input("Команда: ").strip().lower()
+        if command == "list":
+            show_tasks(tasks)
+        elif command == "exit":
+            break
+        elif command in {"add", "find", "done", "search", "stats"}:
+            print("Команда пока не подключена.")
+        else:
+            print("Неизвестная команда.")
 
 run()
