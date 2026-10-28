@@ -1,16 +1,51 @@
 def normalize_title(title):
     return title.lower().lstrip().rstrip()
 
+#функция запрашивает у пользователя номер задачи
+def read_task_id():
+    while True:
+        task_id = read_int("Номер задачи: ")
+        if task_id > 0:
+            return task_id
+        print("Номер должен быть положительным")
 
-def create_task(task_id, title, priority):
-    task = {"task_id": task_id, "title": normalize_title(title),"priority": priority, "is_done":False}
-    return task
+def validate_task_id(task_id):
+    if not isinstance(task_id, int):
+        raise ValueError("Номер задачи должен быть целым числом")
+    if task_id <= 0:
+        raise ValueError("Номер задачи должен быть положительным")
+    return task_id
+
+def validate_title(title):
+    if not isinstance(title, str):
+        raise ValueError("Название должно быть строкой")
+    normalized = normalize_title(title)
+    if normalized == "":
+        raise ValueError("Название не может быть пустым")
+    return normalized
+
+def validate_priority(priority):
+    if not isinstance(priority, int):
+        raise ValueError("Приоритет должен быть целым числом")
+    if not 1 <= priority <= 5:
+        raise ValueError("Приоритет должен быть от 1 до 5")
+    return priority
+
+def create_task(task_id, title, priority=2):
+    task_id = validate_task_id(task_id)
+    title = validate_title(title)
+    priority = validate_priority(priority)
+    return {
+        "id": task_id, "title": title,
+        "priority": priority, "is_done": False,
+    }
 
 def format_task(task):
-    if task["is_done"]==True:
-        return f" [{task["task_id"]}] {task["title"]} | приоритет:{task["priority"]} | выполнена"
+    if task["is_done"] == True:
+        return f'[{task["id"]}] {task["title"]} | приоритет: {task["priority"]} | выполнена'
 
-    return f" [{task["task_id"]}] {task["title"]} | приоритет:{task["priority"]} | не выполнена "
+    return f'[{task["id"]}] {task["title"]} | приоритет: {task["priority"]} | не выполнена'
+
 
 def calculate_study_minutes(durations):
     total=0
@@ -51,16 +86,10 @@ def read_title():
 
 def read_priority():
     while True:
-        raw_priority = input("Приоритет от 1 до 5: ")
-        try:
-            priority = int(raw_priority)
-        except ValueError:
-            print("Введите целое число.")
-            continue
-        if not 1 <= priority <= 5:
-            print("Число должно быть от 1 до 5.")
-            continue
-        return priority
+        priority = read_int("Приоритет от 1 до 5: ")
+        if 1 <= priority <= 5:
+            return priority
+        print("Приоритет должен быть от 1 до 5")
 
 #функция определяения следующего свободного идентификатора для новой задачи
 def get_next_id(tasks):
@@ -77,26 +106,18 @@ def add_task(tasks, title, priority):
     tasks.append(new_task)
     return new_task #возвращает только что созданный объект задачи
 
+
 # функция отвечает только за оркестрацию, а все детали валидации и формирования задачи вынесены в отдельные функции
 def handle_add(tasks):
     title = read_title()
     priority = read_priority()
-    new_task = add_task(tasks, title, priority)
-    print(format_task(new_task))
-
-#функция запрашивает у пользователя номер задачи
-def read_task_id():
-    while True:
-        raw_value = input('Номер задачи: ')
-        try:
-            task_id = int(raw_value)
-        except ValueError:
-            print('Введите целое число')
-            continue
-        if task_id > 0:
-            return task_id
-        print('Номер должен быть положительным')
-
+    try:
+        task = add_task(tasks, title, priority)
+    except ValueError as error:
+        print(error)
+    else:
+        print(format_task(task))
+        
 #функция ищет задачу по её идентификатору
 def find_task(tasks, task_id): 
     for task in tasks:
@@ -276,3 +297,25 @@ calls = []
 def counted_format_task(task):
     calls.append(task['id'])
     return format_task(task)
+
+def read_number(raw):
+    try:
+        value = int(raw)
+    except ValueError:
+        print("Нужны цифры")
+    else:
+        print(f"Номер: {value}")
+    finally:
+        print("Попытка закончена")
+
+def read_int(prompt):
+    while True:
+        raw_value = input(prompt)
+        try:
+            value = int(raw_value)
+        except ValueError:
+            print("Введите целое число")
+            continue
+        return value
+
+
