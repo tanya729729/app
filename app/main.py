@@ -1,6 +1,13 @@
-def normalize_title(title):
-    return title.lower().lstrip().rstrip()
-
+#from errors import TaskNotFoundError
+from app.validators import normalize_title, validate_priority, validate_task_id, validate_title
+from app.operations import (
+    add_task,
+    find_task,
+    mark_task_done,
+    search_tasks,
+    build_statistics,
+    completion_percent,
+)
 #функция запрашивает у пользователя номер задачи
 def read_task_id():
     while True:
@@ -8,37 +15,6 @@ def read_task_id():
         if task_id > 0:
             return task_id
         print("Номер должен быть положительным")
-
-def validate_task_id(task_id):
-    if not isinstance(task_id, int):
-        raise ValueError("Номер задачи должен быть целым числом")
-    if task_id <= 0:
-        raise ValueError("Номер задачи должен быть положительным")
-    return task_id
-
-def validate_title(title):
-    if not isinstance(title, str):
-        raise ValueError("Название должно быть строкой")
-    normalized = normalize_title(title)
-    if normalized == "":
-        raise ValueError("Название не может быть пустым")
-    return normalized
-
-def validate_priority(priority):
-    if not isinstance(priority, int):
-        raise ValueError("Приоритет должен быть целым числом")
-    if not 1 <= priority <= 5:
-        raise ValueError("Приоритет должен быть от 1 до 5")
-    return priority
-
-def create_task(task_id, title, priority=2):
-    task_id = validate_task_id(task_id)
-    title = validate_title(title)
-    priority = validate_priority(priority)
-    return {
-        "id": task_id, "title": title,
-        "priority": priority, "is_done": False,
-    }
 
 def format_task(task):
     if task["is_done"] == True:
@@ -53,19 +29,6 @@ def calculate_study_minutes(durations):
         total=total+duration
     return total
 
-first_title = normalize_title("  Повторить функции  ")
-first_task = create_task(41, first_title, 2)
-first_card = format_task(first_task)
-print(first_card)
-
-second_title = normalize_title("  Сверить учебный план  ")
-second_task = create_task(42, second_title, 5)
-second_card = format_task(second_task)
-print(second_card)
-
-study_durations = [25, 35]
-study_minutes = calculate_study_minutes(study_durations)
-print(study_minutes)
 
 def show_tasks(tasks):
     if len(tasks) == 0:
@@ -91,21 +54,6 @@ def read_priority():
             return priority
         print("Приоритет должен быть от 1 до 5")
 
-#функция определяения следующего свободного идентификатора для новой задачи
-def get_next_id(tasks):
-    largest_id = 0
-    for task in tasks:
-        task_id = task["id"] #получает значение поля id текущей задачи
-        if task_id > largest_id: #сравнение с текущим максимумом и обновление
-            largest_id = task_id
-    return largest_id + 1 #новый уникальный id, который еще не используется
-
-def add_task(tasks, title, priority):
-    task_id = get_next_id(tasks)
-    new_task = create_task(task_id, title, priority)
-    tasks.append(new_task)
-    return new_task #возвращает только что созданный объект задачи
-
 
 # функция отвечает только за оркестрацию, а все детали валидации и формирования задачи вынесены в отдельные функции
 def handle_add(tasks):
@@ -118,12 +66,6 @@ def handle_add(tasks):
     else:
         print(format_task(task))
         
-#функция ищет задачу по её идентификатору
-def find_task(tasks, task_id): 
-    for task in tasks:
-        if task['id'] == task_id: #Проверяется, совпадает ли поле id текущей задачи с искомым task_id
-            return task #При совпадении функция сразу возвращает найденный объект
-    return None # ни одна задача не имеет указанного id
 
 def handle_find(tasks):
     task_id = read_task_id()
@@ -133,13 +75,6 @@ def handle_find(tasks):
     else:
         print(format_task(task))
 
-#функция помечает задачу как выполненную      
-def mark_task_done(tasks, task_id):
-    task = find_task(tasks, task_id)
-    if task is None: #задача не найдена
-        return False 
-    task["is_done"] = True  #при найденной задаче изменяется поле is_done на True, тем самым отмечая её как выполненную.   
-    return True 
 
 #функция помечает задачу как выполненную
 def handle_done(tasks):
@@ -205,27 +140,6 @@ def run(tasks=None):
             handle_stats(tasks)
     return tasks
 
-#функция по запросу ищет совпадающие задачи
-def search_tasks(tasks, query):
-    normalized_query = query.strip().lower()
-    if normalized_query == "":
-        return []
-
-    matches = []
-    for task in tasks:
-        if normalized_query in task["title"].lower(): #если запрос содержится в названии задачи
-            matches.append(task)  #задача добавляется в список matches 
-    return matches
-
-#функция принимает список tasks, формирует статистику и выводит её
-#создаёт словарь с ключами total, completed и left
-def handle_stats(tasks):
-    statistics = build_statistics(tasks)
-    percent = completion_percent(statistics) #completed / total * 100
-    print(f"Всего: {statistics['total']}")
-    print(f"Выполнено: {statistics['completed']}")
-    print(f"Осталось: {statistics['left']}")
-    print(f'Процент выполнения: {percent}%')
 
 #получает список tasks 
 # сразу передаёт его функции show_tasks, которая должна вывести задачи
@@ -319,3 +233,5 @@ def read_int(prompt):
         return value
 
 
+if __name__ == "__main__":
+    run()
