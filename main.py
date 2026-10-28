@@ -145,8 +145,18 @@ def show_menu():
 #запросить данные и добавить новую задачу
 #найти задачу по id и вывести её
 #пометить задачу выполненной
-def run():
-    tasks = []
+def run(tasks=None):
+    if tasks is None:
+        tasks = []
+    
+    handlers = {
+    'add': handle_add,
+    'list': handle_list,
+    'find': handle_find,
+    'done': handle_done,
+    'search': handle_search,
+    'stats': handle_stats,
+}
     while True:
         show_menu()
         command = input("Команда: ").strip().lower()
@@ -156,16 +166,23 @@ def run():
         if command == "exit":
             print("Работу завершили")
             break
-        if command == "add":
+        if command not in handlers:
+            print('Неизвестная команда')  
+            continue
+            handlers[command](tasks)
+        if command == 'add':
             handle_add(tasks)
-        elif command == "find":
+        elif command == 'list':
+            handle_list(tasks)
+        elif command == 'find':
             handle_find(tasks)
-        elif command == "done":
+        elif command == 'done':
             handle_done(tasks)
-        elif command in ("search", "stats"):
-            print("Команда пока не подключена.")
-        else:
-            show_tasks(tasks)
+        elif command == 'search':
+            handle_search(tasks)
+        elif command == 'stats':
+            handle_stats(tasks)
+    return tasks
 
 #функция по запросу ищет совпадающие задачи
 def search_tasks(tasks, query):
@@ -179,11 +196,83 @@ def search_tasks(tasks, query):
             matches.append(task)  #задача добавляется в список matches 
     return matches
 
-# Временный блок после существующего вызова run().
-sample_tasks = [
-    create_task(21, "Проверить срок", 1),
-    create_task(22, "Купить бумаги", 2),
-    create_task(23, "Проверить срок", 3),
-    create_task(24, "Срок подачи", 4),
-]
+#функция принимает список tasks, формирует статистику и выводит её
+#создаёт словарь с ключами total, completed и left
+def handle_stats(tasks):
+    statistics = build_statistics(tasks)
+    percent = completion_percent(statistics) #completed / total * 100
+    print(f"Всего: {statistics['total']}")
+    print(f"Выполнено: {statistics['completed']}")
+    print(f"Осталось: {statistics['left']}")
+    print(f'Процент выполнения: {percent}%')
 
+#получает список tasks 
+# сразу передаёт его функции show_tasks, которая должна вывести задачи
+def handle_list(tasks):
+    show_tasks(tasks)
+
+def change_level(level):
+    level = 8
+    print(level)
+
+def add_stop(route):
+    route.append('сад')
+
+def replace_route(route):
+    route = ['парк']
+
+def add_then_replace(route):
+    route.append('сад')
+    route = ['парк']
+    route.append('лес')
+
+def choose_view(items):
+    items = ['новая']
+    return items
+
+#функция использует изменяемый параметр actions со значением по умолчанию
+#возвращает текущий список действий.
+def log_action(action, actions=[]):
+    actions.append(action)
+    return actions
+
+#возвращает кортеж из двух переданных аргументов 
+def connect(start, finish):
+    return start, finish
+
+#принимает аргумент category, произвольное количество дополнительных позиционных аргументов (*marks)
+# и произвольное количество именованных аргументов (**options)
+# возвращает кортеж 
+def observe(category, *marks, **options):
+    return category, marks, options
+
+# функция собирает все позиционные аргументы в кортеж и передаёт их в connect через *args
+# и собирает все именованные аргументы в словарь и передаёт их в connect через **kwargs
+def relay(*args, **kwargs):
+    return connect(*args, **kwargs)
+
+def notify():
+    print('Сработало')
+
+#функция‑фабрика, создающая обёртку (wrapper) для любой переданной функции 
+#operation — вызываемая функция, которую нужно трассировать.
+#prefix — строка, используемая в выводе для обозначения начала и завершения операции
+def make_trace(operation, prefix):
+    def wrapper(*args, **kwargs):
+        print(f"{prefix} START")
+        result = operation(*args, **kwargs)
+        print(f"{prefix} DONE {result}")
+        return result
+    return wrapper
+
+#принимает метку label и список events
+#добавляет переданную метку в конец списка
+def record_event(label, events):
+    events.append(label)
+    return 'accepted'
+
+calls = []
+#функция добавляет идентификатор задачи task['id'] в список calls
+def counted_format_task(task):
+    calls.append(task['id'])
+    return format_task(task)
