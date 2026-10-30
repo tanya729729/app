@@ -7,7 +7,10 @@ from app.operations import (
     search_tasks,
     build_statistics,
     completion_percent,
+    handle_stats,
 )
+
+
 #функция запрашивает у пользователя номер задачи
 def read_task_id():
     while True:
@@ -65,7 +68,18 @@ def handle_add(tasks):
         print(error)
     else:
         print(format_task(task))
-        
+
+def handle_search(tasks):
+    query = input("Введите название для поиска: ").strip()
+
+    found_tasks = search_tasks(tasks, query)
+
+    if not found_tasks:
+        print("Задачи не найдены")
+        return
+
+    show_tasks(found_tasks)        
+
 
 def handle_find(tasks):
     task_id = read_task_id()
@@ -104,42 +118,32 @@ def show_menu():
 def run(tasks=None):
     if tasks is None:
         tasks = []
-    
+
     handlers = {
-    'add': handle_add,
-    'list': handle_list,
-    'find': handle_find,
-    'done': handle_done,
-    'search': handle_search,
-    'stats': handle_stats,
-}
+        "add": handle_add,
+        "list": handle_list,
+        "find": handle_find,
+        "done": handle_done,
+        "search": handle_search,
+        "stats": handle_stats,
+    }
+
     while True:
         show_menu()
+
         command = input("Команда: ").strip().lower()
-        if command not in ("add", "list", "find", "done", "search", "stats", "exit"):
-            print("Неизвестная команда")
-            continue
+
         if command == "exit":
             print("Работу завершили")
             break
-        if command not in handlers:
-            print('Неизвестная команда')  
-            continue
-            handlers[command](tasks)
-        if command == 'add':
-            handle_add(tasks)
-        elif command == 'list':
-            handle_list(tasks)
-        elif command == 'find':
-            handle_find(tasks)
-        elif command == 'done':
-            handle_done(tasks)
-        elif command == 'search':
-            handle_search(tasks)
-        elif command == 'stats':
-            handle_stats(tasks)
-    return tasks
 
+        if command not in handlers:
+            print("Неизвестная команда")
+            continue
+
+        handlers[command](tasks)
+
+    return tasks
 
 #получает список tasks 
 # сразу передаёт его функции show_tasks, которая должна вывести задачи
@@ -167,7 +171,10 @@ def choose_view(items):
 
 #функция использует изменяемый параметр actions со значением по умолчанию
 #возвращает текущий список действий.
-def log_action(action, actions=[]):
+def log_action(action, actions=None):
+    if actions is None:
+        actions = []
+
     actions.append(action)
     return actions
 

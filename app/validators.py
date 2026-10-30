@@ -4,7 +4,7 @@ def normalize_title(title):
 
 
 def validate_task_id(task_id):
-    if not isinstance(task_id, int):
+    if type(task_id) is not int:
         raise ValueError("Номер задачи должен быть целым числом")
     if task_id <= 0:
         raise ValueError("Номер задачи должен быть положительным")
@@ -19,7 +19,7 @@ def validate_title(title):
     return normalized
 
 def validate_priority(priority):
-    if not isinstance(priority, int):
+    if type(priority) is not int:
         raise ValueError("Приоритет должен быть целым числом")
     if not 1 <= priority <= 5:
         raise ValueError("Приоритет должен быть от 1 до 5")
