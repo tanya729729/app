@@ -19,7 +19,6 @@ def read_task_id():
             return task_id
         print("Номер должен быть положительным")
 
-#функция с красивым выводом
 def format_task(task):
     if task["is_done"] == True:
         return f'[{task["id"]}] {task["title"]} | приоритет: {task["priority"]} | выполнена'
